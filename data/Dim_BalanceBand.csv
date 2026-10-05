@@ -1,0 +1,6 @@
+BalanceBand,SortOrder
+Zero balance,1
+Low (< €50k),2
+Medium (€50k-100k),3
+High (€100k-150k),4
+Very high (€150k+),5

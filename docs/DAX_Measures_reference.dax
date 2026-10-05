@@ -1,0 +1,122 @@
+-- ============================================================
+-- BANK CUSTOMER CHURN — DAX MEASURE CATALOG
+-- Create a dedicated measure table: Modeling > New Table > _Measures = {0}
+-- Then: Modeling > New Measure, paste each. Set formats as noted.
+-- All measures respond to slicers (Geography, Gender, Age Group, etc.)
+-- ============================================================
+
+-- ================= HEADLINE KPIs =================
+
+Total Customers =
+DISTINCTCOUNT ( Fact_Churn[CustomerId] )
+// Format: Whole number. EXPECTED: 10,000
+
+Churned Customers =
+CALCULATE ( [Total Customers], Fact_Churn[Exited] = 1 )
+// Format: Whole number. EXPECTED: 2,037
+
+Retained Customers =
+[Total Customers] - [Churned Customers]
+// Format: Whole number. EXPECTED: 7,963
+
+Churn Rate =
+DIVIDE ( [Churned Customers], [Total Customers] )
+// Format: Percentage, 1 decimal. EXPECTED: 20.4%
+
+Retention Rate =
+1 - [Churn Rate]
+// Format: Percentage, 1 decimal. EXPECTED: 79.6%
+
+-- ================= MONEY AT RISK =================
+
+Total Balance =
+SUM ( Fact_Churn[Balance] )
+// Format: Currency (€), 0 decimals. EXPECTED: €764.9M
+
+Balance at Risk =
+CALCULATE ( [Total Balance], Fact_Churn[Exited] = 1 )
+// Format: Currency (€), 0 decimals. EXPECTED: €185.6M
+
+Share of Balance at Risk =
+DIVIDE ( [Balance at Risk], [Total Balance] )
+// Format: Percentage, 1 decimal. EXPECTED: 24.3%
+
+Avg Balance per Customer =
+DIVIDE ( [Total Balance], [Total Customers] )
+// Format: Currency (€), 0 decimals. EXPECTED: €76,486
+
+-- ================= CUSTOMER PROFILE =================
+
+Avg Credit Score =
+AVERAGE ( Fact_Churn[CreditScore] )
+// Whole number. EXPECTED: 651
+
+Avg Credit Score Churned =
+CALCULATE ( [Avg Credit Score], Fact_Churn[Exited] = 1 )
+// EXPECTED: 645
+
+Avg Credit Score Retained =
+CALCULATE ( [Avg Credit Score], Fact_Churn[Exited] = 0 )
+// EXPECTED: 652
+
+Avg Age =
+AVERAGE ( Fact_Churn[Age] )
+// 1 decimal. EXPECTED: 38.9
+
+Avg Age Churned =
+CALCULATE ( [Avg Age], Fact_Churn[Exited] = 1 )
+// EXPECTED: 44.8
+
+Avg Tenure Years =
+AVERAGE ( Fact_Churn[Tenure] )
+// 1 decimal. EXPECTED: 5.0
+
+Avg Products =
+AVERAGE ( Fact_Churn[NumOfProducts] )
+// 2 decimals. EXPECTED: 1.53
+
+Avg Salary =
+AVERAGE ( Fact_Churn[EstimatedSalary] )
+// Currency (€), 0 decimals. EXPECTED: €100,090
+
+Active Member Share =
+DIVIDE (
+    CALCULATE ( [Total Customers], Fact_Churn[IsActiveMember] = 1 ),
+    [Total Customers]
+)
+// Percentage, 1 decimal. EXPECTED: 51.5%
+
+-- ================= DYNAMIC TITLES =================
+
+Title Segment =
+"Churn analysis — " & SELECTEDVALUE ( Dim_Geography[Geography], "All markets" )
+// Use as card title / page header text. Responds to Geography slicer.
+
+-- ================= QA SELF-CHECKS =================
+-- Put these on a hidden QA page or check once in DAX Studio.
+-- If any fail, the model is broken — do not publish.
+
+QA Row Count =
+COUNTROWS ( Fact_Churn )
+// EXPECTED: 10,000
+
+QA Null Check =
+COUNTBLANK ( Fact_Churn[Age Group] )
+    + COUNTBLANK ( Fact_Churn[Credit Band] )
+    + COUNTBLANK ( Fact_Churn[Tenure Group] )
+    + COUNTBLANK ( Fact_Churn[Balance Band] )
+// EXPECTED: 0
+
+QA Churn Rate Check =
+IF ( ABS ( [Churn Rate] - 0.2037 ) < 0.001, "PASS", "FAIL" )
+// EXPECTED: PASS (no filters applied)
+
+-- ================= SEGMENT COMPARISON =================
+
+Overall Churn Rate =
+CALCULATE ( [Churn Rate], ALL ( Fact_Churn ) )
+// Constant 20.4% reference line across segments
+
+Churn Rate vs Overall pp =
+[Churn Rate] - [Overall Churn Rate]
+// Percentage points, signed, 1 decimal. For conditional formatting.

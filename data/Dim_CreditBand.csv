@@ -1,0 +1,5 @@
+CreditBand,SortOrder
+Poor (<580),1
+Fair (580-669),2
+Good (670-739),3
+Excellent (740+),4

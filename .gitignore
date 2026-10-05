@@ -1,0 +1,17 @@
+﻿# -- secrets --
+.env
+
+# -- build artifacts --
+*.duckdb
+__pycache__/
+*.py[cod]
+
+# -- eval outputs --
+evals/results/
+
+# -- streamlit --
+.streamlit/secrets.toml
+
+# -- OS --
+.DS_Store
+Thumbs.db
